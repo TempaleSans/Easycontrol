@@ -1,0 +1,36 @@
+name: 打包EasyControl APK
+on:
+  push:
+    branches: [ main ] # 若你的分支是master，改为master
+    paths: [ 'easycontrol/**' ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 拉取代码
+        uses: actions/checkout@v4
+
+      - name: 配置JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+          cache-dependency-path: 'easycontrol/build.gradle'
+
+      # 核心修复：直接指向easycontrol下的gradlew
+      - name: 赋予Gradle权限
+        run: chmod +x easycontrol/gradlew
+
+      # 核心修复：进入easycontrol目录执行打包
+      - name: 构建Release APK
+        run: cd easycontrol && ./gradlew assembleRelease --no-daemon
+
+      # 核心修复：匹配easycontrol下的产物路径
+      - name: 上传APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: EasyControl-安装包
+          path: easycontrol/app/build/outputs/apk/release/*.apk
