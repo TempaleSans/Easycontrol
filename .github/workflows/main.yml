@@ -1,0 +1,43 @@
+# 这是工作流的名称，会显示在 Actions 列表中
+name: 自动打包安卓APK
+
+# 触发条件：
+# 1. 当代码推送到 main 分支时自动构建
+# 2. 允许在网页上手动点击触发
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+# 定义任务
+jobs:
+  build:
+    # 运行在最新的 Ubuntu 服务器上
+    runs-on: ubuntu-latest
+    
+    steps:
+      # 1. 拉取你的代码
+      - uses: actions/checkout@v4
+
+      # 2. 设置 Java 环境（根据项目要求选择 17 或 11）
+      - name: 设置 JDK
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # 3. 赋予 Gradle 执行权限（必要时）
+      - name: 赋予Gradle权限
+        run: chmod +x ./gradlew
+
+      # 4. 执行打包命令 (核心步骤)
+      # 如果是 Flutter 项目，请把这一行改为：run: flutter build apk --release
+      - name: 构建Release版本
+        run: ./gradlew assembleRelease
+
+      # 5. 上传打包好的文件作为下载产物
+      - name: 上传APK文件
+        uses: actions/upload-artifact@v4
+        with:
+          name: 我的安卓安装包
+          path: app/build/outputs/apk/release/*.apk
