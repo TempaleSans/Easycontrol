@@ -2,7 +2,7 @@ name: 打包EasyControl APK
 on:
   push:
     # 替换为仓库实际默认分支（main/master）
-    branches: [ main ]
+    branches: [ master ]
     paths: [ 'easycontrol/**' ]
   workflow_dispatch:
 
