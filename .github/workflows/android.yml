@@ -9,13 +9,13 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: set up JDK 11
-      # 这个项目比较老，建议先用 JDK 11 尝试，如果不通再换 8 或 17
+    - name: set up JDK 17
       uses: actions/setup-java@v4
       with:
-        java-version: '11'
+        java-version: '17'      # 这里改回 17
         distribution: 'temurin'
         cache: gradle
+
 
     - name: Initialize Gradle Wrapper
       # 重点：因为原作者没传 gradlew，我们要强行生成一个
