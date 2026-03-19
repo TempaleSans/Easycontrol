@@ -1,32 +1,36 @@
 name: Android CI
 
-on:
-  push:
-    branches: [ "main", "master" ] # 当主分支有变动时触发
-  workflow_dispatch: # 允许你手动点击按钮触发编译
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   build:
-    runs-on: ubuntu-latest # 使用 GitHub 提供的 Linux 虚拟服务器
+    runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4 # 拉取代码
+    - uses: actions/checkout@v4
 
-    - name: set up JDK 17
+    - name: set up JDK 11
+      # 这个项目比较老，建议先用 JDK 11 尝试，如果不通再换 8 或 17
       uses: actions/setup-java@v4
       with:
-        java-version: '17'
+        java-version: '11'
         distribution: 'temurin'
         cache: gradle
+
+    - name: Initialize Gradle Wrapper
+      # 重点：因为原作者没传 gradlew，我们要强行生成一个
+      run: gradle wrapper
 
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
 
     - name: Build with Gradle
-      run: ./gradlew assembleDebug # 编译 Debug 版 APK
+      # 使用 clean assembleDebug 确保干净编译
+      run: ./gradlew clean assembleDebug --stacktrace
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: my-app-apk
-        path: app/build/outputs/apk/debug/*.apk # 这里的路径根据项目结构可能略有不同
+        name: Easycontrol-Debug-APK
+        path: "**/build/outputs/apk/debug/*.apk"
+
