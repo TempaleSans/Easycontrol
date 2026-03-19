@@ -17,19 +17,21 @@ jobs:
         cache: gradle
 
     - name: Initialize Gradle Wrapper
-      # 重点：进入 easycontrol 文件夹生成 wrapper
+      # 重点：进入第二层 easycontrol 文件夹，因为那里才有 settings.gradle
       run: gradle wrapper
-      working-directory: .
+      working-directory: easycontrol
+
+    - name: Grant execute permission for gradlew
+      run: chmod +x easycontrol/gradlew
 
     - name: Build with Gradle
-      # 重点：这里执行编译命令，并指向具体的文件夹
+      # 重点：在正确的目录下运行编译命令
       run: ./gradlew assembleDebug --stacktrace
-      # 如果你的 gradlew 在根目录生成了，就直接跑；
-      # 如果编译还提示找不到 build.gradle，请把下面这行取消注释：
-      # working-directory: . 
+      working-directory: easycontrol
 
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
-        name: Easycontrol-APK
+        name: Easycontrol-Fixed-APK
+        # 递归搜索所有生成的 apk
         path: "**/build/outputs/apk/debug/*.apk"
