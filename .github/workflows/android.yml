@@ -1,39 +1,46 @@
-name: Android CI
+name: Build Easycontrol
 
-on: [push, pull_request, workflow_dispatch]
+on:
+  push:
+    branches: [ "master", "main" ]
+  workflow_dispatch: # 允许你手动点击按钮触发编译
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout Code
-      uses: actions/checkout@v4
-      with:
-        # 重点：递归拉取所有子模块，解决 :cloud 文件夹丢失问题
-        submodules: recursive
+      - name: 拉取代码并包含所有子模块
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive # 解决 :cloud 文件夹丢失的问题
 
-    - name: set up JDK 17
-      uses: actions/setup-java@v4
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-        cache: gradle
+      - name: 配置 Java 环境 (JDK 11)
+        uses: actions/setup-java@v4
+        with:
+          java-version: '11' # 这个项目偏老，JDK 11 最稳妥
+          distribution: 'temurin'
+          cache: gradle
 
-    - name: Initialize Gradle Wrapper
-      run: gradle wrapper
-      working-directory: easycontrol
+      - name: 强行生成并配置 Gradle 环境
+        # 强制使用 7.5 版本的 Gradle 兼容老代码，并在 easycontrol 目录下执行
+        run: gradle wrapper --gradle-version 7.5
+        working-directory: easycontrol
 
-    - name: Grant execute permission for gradlew
-      run: chmod +x easycontrol/gradlew
+      - name: 赋予编译脚本执行权限
+        run: chmod +x easycontrol/gradlew
 
-    - name: Build with Gradle
-      # 尝试编译，这次有了子模块代码，应该能跑通配置阶段
-      run: ./gradlew assembleDebug --stacktrace
-      working-directory: easycontrol
+      - name: 开始正式编译
+        # 使用 clean 先清理一下，防止缓存报错
+        run: ./gradlew clean assembleDebug --stacktrace
+        working-directory: easycontrol
 
-    - name: Upload APK
-      uses: actions/upload-artifact@v4
+      - name: 上传打包好的 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Easycontrol-App
+          # 递归搜索整个目录把生成的 APK 捞出来
+          path: "**/build/outputs/apk/debug/*.apk"
       with:
         name: Easycontrol-Final-APK
         path: "**/build/outputs/apk/debug/*.apk"
